@@ -8,11 +8,26 @@ import (
 )
 
 func main() {
-	c, _ := edgeos.NewClient(os.Getenv("ERLITE_ADDR"), os.Getevn("ERLITE_USER"), os.Getenv("ERLITE_PASS"))
+	c, _ := edgeos.NewClient(os.Getenv("ERLITE_ADDR"), os.Getenv("ERLITE_USER"), os.Getenv("ERLITE_PASS"))
 
 	if err := c.Login(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println(c.Get())
+	feat, err := c.Feature(edgeos.PortForwarding)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	d := feat["data"].(map[string]interface{})["rules-config"].([]interface{})
+
+	d = d[:len(d)-1]
+
+	feat["data"].(map[string]interface{})["rules-config"] = d
+
+	log.Println(feat["data"])
+	log.Println()
+	log.Println()
+
+	// log.Println(c.SetFeature(edgeos.PortForwarding, feat["data"]))
 }
