@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
-	c, _ := edgeos.NewClient(os.Getenv("ERLITE_ADDR"), os.Getenv("ERLITE_USER"), os.Getenv("ERLITE_PASS"))
+	c, err := edgeos.NewClient(os.Getenv("ERLITE_ADDR"), os.Getenv("ERLITE_USER"), os.Getenv("ERLITE_PASS"))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if err := c.Login(); err != nil {
 		log.Fatal(err)
