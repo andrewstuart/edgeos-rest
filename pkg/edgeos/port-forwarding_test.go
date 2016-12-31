@@ -20,4 +20,6 @@ func TestDecode(t *testing.T) {
 
 	asrt.IsType(Feature{}, res.Feature)
 	asrt.IsType(PortForwards{}, res.Feature.Data)
+
+	asrt.Len(res.Feature.Data.Rules, 7)
 }
