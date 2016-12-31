@@ -46,6 +46,14 @@ func (c *Client) Login() error {
 type Resp map[string]interface{}
 
 func (c *Client) GetJSON(endpoint string, data interface{}) (Resp, error) {
+	var m map[string]interface{}
+
+	err := c.JSONFor(endpoint, data, &m)
+
+	return m, err
+}
+
+func (c *Client) JSONFor(endpoint string, data interface{}, out interface{}) error {
 	var (
 		res *http.Response
 		err error
@@ -58,14 +66,11 @@ func (c *Client) GetJSON(endpoint string, data interface{}) (Resp, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer res.Body.Close()
 
-	var m map[string]interface{}
-
-	err = json.NewDecoder(res.Body).Decode(&m)
-	return m, err
+	return json.NewDecoder(res.Body).Decode(out)
 }
 
 // Get returns some standard configuration information from EdgeOS
@@ -84,6 +89,13 @@ func (c *Client) Feature(s Scenario) (Resp, error) {
 	}
 
 	return Resp(f["FEATURE"].(map[string]interface{})), nil
+}
+
+func (c *Client) FeatureFor(s Scenario, out interface{}) error {
+	return c.JSONFor("feature", map[string]string{
+		"action":   "load",
+		"scenario": string(s),
+	}, out)
 }
 
 // SetFeature allows users to programmatically update features
