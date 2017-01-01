@@ -112,6 +112,16 @@ func (c *Client) SetFeature(s Scenario, data interface{}) (Resp, error) {
 	return Resp(f["FEATURE"].(map[string]interface{})), nil
 }
 
+// SetFeatureFor takes a "Scenario", some data to send, and a pointer to an
+// interface into which the JSON response will be decoded.
+func (c *Client) SetFeatureFor(s Scenario, data interface{}, out interface{}) error {
+	return c.JSONFor("feature", map[string]interface{}{
+		"action":   "apply",
+		"apply":    data,
+		"scenario": string(s),
+	}, out)
+}
+
 // NewClient returns an initialized Client for interacting with an EdgeOS device
 func NewClient(addr, username, password string) (*Client, error) {
 	jar, err := cookiejar.New(nil)
