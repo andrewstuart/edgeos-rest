@@ -12,6 +12,7 @@ type PortForward struct {
 type PortForwards struct {
 	AutoFirewall string        `json:"auto-firewall"`
 	HairpinNAT   string        `json:"hairpin-nat"`
+	WAN          string        `json:"wan"`
 	Lans         []LanConfig   `json:"lans-config"`
 	Rules        []PortForward `json:"rules-config"`
 }
