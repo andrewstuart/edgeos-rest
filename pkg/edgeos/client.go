@@ -19,11 +19,13 @@ const (
 type Client struct {
 	Username, Password, Address string
 
+	Path, Suffix, LoginEndpoint string
+
 	cli *http.Client
 }
 
 func (c *Client) endpoint(s string) string {
-	return fmt.Sprintf("%s/api/edge/%s.json", c.Address, s)
+	return fmt.Sprintf("%s/%s/%s%s", c.Address, c.Path, s, c.Suffix)
 }
 
 // Login sets up an http session with the EdgeOS device using the supplied
@@ -34,7 +36,7 @@ func (c *Client) Login() error {
 		"password": []string{c.Password},
 	}
 
-	res, err := c.cli.PostForm(c.Address+"/", v)
+	res, err := c.cli.PostForm(c.Address+"/"+c.LoginEndpoint, v)
 	if err != nil {
 		return err
 	}
@@ -132,6 +134,8 @@ func NewClient(addr, username, password string) (*Client, error) {
 	c := &Client{
 		Username: username,
 		Password: password,
+		Path:     "api/edge",
+		Suffix:   ".json",
 		Address:  addr,
 		cli: &http.Client{
 			Transport: &csrfTransport{
