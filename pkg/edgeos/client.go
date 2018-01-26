@@ -9,8 +9,10 @@ import (
 	"net/url"
 )
 
+// Scenario is just a string type to encourage the use of internal constants.
 type Scenario string
 
+// Common feature endpoints
 const (
 	PortForwarding Scenario = ".Port_Forwarding"
 )
@@ -45,8 +47,13 @@ func (c *Client) Login() error {
 	return nil
 }
 
+// Resp is the basic response type for the EdgeOS API. Higher-level methods
+// will tend to skip this type and return strongly-typed objects for specific
+// endpoints.
 type Resp map[string]interface{}
 
+// GetJSON takes an endpoint and data for the POST body (or GET if `data` is nil) and
+// returns the Resp type that contains the data response from the endpoint.
 func (c *Client) GetJSON(endpoint string, data interface{}) (Resp, error) {
 	var m map[string]interface{}
 
@@ -55,7 +62,9 @@ func (c *Client) GetJSON(endpoint string, data interface{}) (Resp, error) {
 	return m, err
 }
 
-func (c *Client) JSONFor(endpoint string, data interface{}, out interface{}) error {
+// JSONFor is a high-level method that takes an endpoint, a post body, and a
+// pointer to a struct into which the JSON should be decoded.
+func (c *Client) JSONFor(endpoint string, data, out interface{}) error {
 	var (
 		res *http.Response
 		err error
@@ -80,6 +89,8 @@ func (c *Client) Get() (Resp, error) {
 	return c.GetJSON("get", nil)
 }
 
+// Feature takes an EdgeOS "Scenario" as an argument and returns a Resp
+// representing the JSON returned by the API.
 func (c *Client) Feature(s Scenario) (Resp, error) {
 	f, err := c.GetJSON("feature", map[string]string{
 		"action":   "load",
@@ -93,6 +104,8 @@ func (c *Client) Feature(s Scenario) (Resp, error) {
 	return Resp(f["FEATURE"].(map[string]interface{})), nil
 }
 
+// FeatureFor takes a scenario and a pointer to a struct. The JSON response
+// will be deserialized into the `out` object, and any errors will be returned.
 func (c *Client) FeatureFor(s Scenario, out interface{}) error {
 	return c.JSONFor("feature", map[string]string{
 		"action":   "load",
