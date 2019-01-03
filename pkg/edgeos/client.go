@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
 )
 
 // Scenario is just a string type to encourage the use of internal constants.
@@ -26,7 +28,9 @@ type Client struct {
 	cli *http.Client
 }
 
-func (c *Client) endpoint(s string) string {
+// Endpoint provides a quick way to get a formatted string for an edgeos
+// endpoint.
+func (c *Client) Endpoint(s string) string {
 	return fmt.Sprintf("%s/%s/%s%s", c.Address, c.Path, s, c.Suffix)
 }
 
@@ -62,6 +66,18 @@ func (c *Client) GetJSON(endpoint string, data interface{}) (Resp, error) {
 	return m, err
 }
 
+// DoFor wraps the http client's Do method for callers, writing the json to
+// `out` and returning any errors encountered.
+func (c *Client) DoFor(req *http.Request, out interface{}) error {
+	res, err := c.cli.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+	return json.NewDecoder(io.TeeReader(res.Body, os.Stdout)).Decode(out)
+}
+
 // JSONFor is a high-level method that takes an endpoint, a post body, and a
 // pointer to a struct into which the JSON should be decoded.
 func (c *Client) JSONFor(endpoint string, data, out interface{}) error {
@@ -70,10 +86,10 @@ func (c *Client) JSONFor(endpoint string, data, out interface{}) error {
 		err error
 	)
 	if data == nil {
-		res, err = c.cli.Get(c.endpoint(endpoint))
+		res, err = c.cli.Get(c.Endpoint(endpoint))
 	} else {
 		bs, _ := json.Marshal(map[string]interface{}{"data": data})
-		res, err = c.cli.Post(c.endpoint(endpoint), "application/json", bytes.NewReader(bs))
+		res, err = c.cli.Post(c.Endpoint(endpoint), "application/json", bytes.NewReader(bs))
 	}
 
 	if err != nil {
